@@ -1,2 +1,33 @@
-FROM nginx:1.24-alpine
-COPY . /usr/share/nginx/html
+name: Docker Publish
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          docker build -t ghcr.io/chrisd04/publish-packages:latest .
+
+      - name: Push image
+        run: |
+          docker push ghcr.io/chrisd04/publish-packages:latest
+
